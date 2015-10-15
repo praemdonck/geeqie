@@ -299,6 +299,7 @@ GtkWidget *bar_pane_comment_new_from_config(const gchar **attribute_names, const
 		}
 	
 	bar_pane_translate_title(PANE_COMMENT, id, &title);
+  DEBUG_1("DBG PABLO bar_pane_comment_new_from_config %s", title);
 	ret = bar_pane_comment_new(id, title, key, expanded, height);
 	g_free(title);
 	g_free(key);
@@ -330,6 +331,7 @@ void bar_pane_comment_update_from_config(GtkWidget *pane, const gchar **attribut
 		log_printf("unknown attribute %s = %s\n", option, value);
 		}
 
+  DEBUG_1("DBG PABLO bar_pane_comment_update_from_config");
 	if (title)
 		{
 		bar_pane_translate_title(PANE_COMMENT, pcd->pane.id, &title);

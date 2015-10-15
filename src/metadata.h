@@ -16,6 +16,7 @@
 
 #define COMMENT_KEY "Xmp.dc.description"
 #define KEYWORD_KEY "Xmp.dc.subject"
+#define KEYWORD_RATING "Xmp.xmp.Rating"
 #define ORIENTATION_KEY "Xmp.tiff.Orientation"
 
 gboolean metadata_write_queue_remove(FileData *fd);

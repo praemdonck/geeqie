@@ -32,12 +32,13 @@ gint required_debug_level(gint level);
 const gchar *get_exec_time(void);
 void init_exec_time(void);
 
+					//if (debug_level != 1) log_domain_printf(DOMAIN_DEBUG, "%s:%d: ", __FILE__, __LINE__); 
 #define DEBUG_N(n, ...) do \
 				{ \
 				gint debug_level = get_debug_level(); \
 				if (debug_level >= (n)) 	\
 					{ 		\
-					if (debug_level != 1) log_domain_printf(DOMAIN_DEBUG, "%s:%d: ", __FILE__, __LINE__); \
+					log_domain_printf(DOMAIN_DEBUG, "%s:%d: ", __FILE__, __LINE__); \
 					log_domain_printf(DOMAIN_DEBUG, __VA_ARGS__); \
 					log_domain_printf(DOMAIN_DEBUG, "\n"); \
 					} \

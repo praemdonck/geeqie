@@ -70,3 +70,5 @@ Makefile.in
 /debian/geeqie*
 /debian/files
 /doc/html/
+src/cscope.out
+src/tags

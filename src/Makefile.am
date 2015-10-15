@@ -86,6 +86,8 @@ geeqie_SOURCES = \
 	bar.h		\
 	bar_comment.c	\
 	bar_comment.h	\
+	bar_rating.c	\
+	bar_rating.h	\
 	bar_gps.c	\
 	bar_gps.h	\
 	bar_histogram.c	\
