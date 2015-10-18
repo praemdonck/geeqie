@@ -42,6 +42,8 @@ gboolean pixbuf_scale_aspect(gint req_w, gint req_h, gint old_w, gint old_h, gin
 #define PIXBUF_INLINE_ICON_CONFIG	"icon_config"
 #define PIXBUF_INLINE_ICON_TOOLS	"icon_tools"
 #define PIXBUF_INLINE_ICON_VIEW		"icon_view"
+#define PIXBUF_INLINE_STAR_FULL		"star_full"
+#define PIXBUF_INLINE_STAR_EMPTY	"star_empty"
 
 
 GdkPixbuf *pixbuf_copy_rotate_90(GdkPixbuf *src, gboolean counter_clockwise);
