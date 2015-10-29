@@ -16,6 +16,7 @@
 
 GtkWidget *bar_pane_rating_new_from_config(const gchar **attribute_names, const gchar **attribute_values);
 void bar_pane_rating_update_from_config(GtkWidget *pane, const gchar **attribute_names, const gchar **attribute_values);
+void bar_rating_set(int rating);
 
 #endif
 /* vim: set shiftwidth=8 softtabstop=0 cindent cinoptions={1s: */

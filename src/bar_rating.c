@@ -24,7 +24,6 @@
 #include "rcfile.h"
 #include "layout.h"
 
-static void bar_pane_comment_changed(GtkTextBuffer *buffer, gpointer data);
 
 /*
  *-------------------------------------------------------------------
@@ -32,26 +31,27 @@ static void bar_pane_comment_changed(GtkTextBuffer *buffer, gpointer data);
  *-------------------------------------------------------------------
  */
 
-
-
 typedef struct _PaneCommentData PaneCommentData;
 struct _PaneCommentData
 {
-	PaneData pane;
-	GtkWidget *widget;
-	GtkWidget *comment_view;
-	FileData *fd;
-	gchar *key;
-	gint height;
-  GtkWidget *rating_stars[6];
-  int rating;
+        PaneData pane;
+        GtkWidget *widget;
+        GtkWidget *comment_view;
+        FileData *fd;
+        gchar *key;
+        gint height;
+        GtkWidget *rating_stars[6];
+        int rating;
 };
 
+PaneCommentData *nasty_hack_pointer = NULL;
+
+static void bar_pane_comment_changed(GtkTextBuffer *buffer, gpointer data);
+static void bar_rating_set_stars(PaneCommentData *pcd, int rating);
 
 static void bar_pane_comment_write(PaneCommentData *pcd)
 {
 	gchar *comment;
-
 	if (!pcd->fd) return;
 
 	comment = text_widget_text_pull(pcd->comment_view);
@@ -63,16 +63,28 @@ static void bar_pane_comment_write(PaneCommentData *pcd)
 
 static void bar_pane_comment_update(PaneCommentData *pcd)
 {
-	gchar *comment = NULL;
+	//gchar *comment;
+	guint64 rating;
+	gchar string[50];
+	
 	GtkTextBuffer *comment_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(pcd->comment_view));
 
 	g_signal_handlers_block_by_func(comment_buffer, bar_pane_comment_changed, pcd);
 
-	comment = metadata_read_string(pcd->fd, pcd->key, METADATA_PLAIN);
-	gtk_text_buffer_set_text(comment_buffer,
-				 (comment) ? comment : "", -1);
-	g_free(comment);
+	//comment = metadata_read_string(pcd->fd, pcd->key, METADATA_PLAIN);
+	rating = metadata_read_int(pcd->fd, pcd->key, 0);
+
+	g_snprintf(string, sizeof(string), "%ld", rating);
+
+	//gtk_text_buffer_set_text(comment_buffer,
+	//			 (comment) ? comment : "", -1);
+
+	gtk_text_buffer_set_text(comment_buffer, string, -1);
+	//g_free(string);
 	
+  pcd->rating = rating;
+  bar_rating_set_stars(pcd, rating);
+
 	g_signal_handlers_unblock_by_func(comment_buffer, bar_pane_comment_changed, pcd);
 
 	gtk_widget_set_sensitive(pcd->comment_view, (pcd->fd != NULL));
@@ -82,9 +94,9 @@ static void bar_pane_comment_set_selection(PaneCommentData *pcd, gboolean append
 {
 	GList *list = NULL;
 	GList *work;
-	gchar *comment = NULL;
+	//gchar *comment = NULL;
 
-	comment = text_widget_text_pull(pcd->comment_view);
+	//comment = text_widget_text_pull(pcd->comment_view);
 
 	list = layout_selection_list(pcd->pane.lw);
 	list = file_data_process_groups_in_selection(list, FALSE, NULL);
@@ -98,16 +110,18 @@ static void bar_pane_comment_set_selection(PaneCommentData *pcd, gboolean append
 
 		if (append)
 			{
-			metadata_append_string(fd, pcd->key, comment);
+			//metadata_append_string(fd, pcd->key, comment);
+			metadata_write_int(fd, pcd->key, pcd->rating);
 			}
 		else
 			{
-			metadata_write_string(fd, pcd->key, comment);
+			//metadata_write_string(fd, pcd->key, comment);
+			metadata_write_int(fd, pcd->key, pcd->rating);
 			}
 		}
 
 	filelist_free(list);
-	g_free(comment);
+	//g_free(comment);
 }
 
 static void bar_pane_comment_sel_add_cb(GtkWidget *button, gpointer data)
@@ -191,14 +205,14 @@ static void bar_pane_comment_changed(GtkTextBuffer *buffer, gpointer data)
 }
 
 
-static void bar_pane_comment_populate_popup(GtkTextView *textview, GtkMenu *menu, gpointer data)
-{
-	PaneCommentData *pcd = data;
-
-	menu_item_add_divider(GTK_WIDGET(menu));
-	menu_item_add_stock(GTK_WIDGET(menu), _("Add text to selected files"), GTK_STOCK_ADD, G_CALLBACK(bar_pane_comment_sel_add_cb), pcd);
-	menu_item_add_stock(GTK_WIDGET(menu), _("Replace existing text in selected files"), GTK_STOCK_CONVERT, G_CALLBACK(bar_pane_comment_sel_replace_cb), data);
-}
+//static void bar_pane_comment_populate_popup(GtkTextView *textview, GtkMenu *menu, gpointer data)
+//{
+//	PaneCommentData *pcd = data;
+//
+//	menu_item_add_divider(GTK_WIDGET(menu));
+//	menu_item_add_stock(GTK_WIDGET(menu), _("Add text to selected files"), GTK_STOCK_ADD, G_CALLBACK(bar_pane_comment_sel_add_cb), pcd);
+//	menu_item_add_stock(GTK_WIDGET(menu), _("Replace existing text in selected files"), GTK_STOCK_CONVERT, G_CALLBACK(bar_pane_comment_sel_replace_cb), data);
+//}
 
 #if 0
 static void bar_pane_comment_close(GtkWidget *bar)
@@ -235,53 +249,99 @@ enum {
   NUM_COLS
 };
 
-GtkTreeModel *init_model(void) {
-    
-  GtkListStore *list_store;
-  GdkPixbuf *p1, *p2, *p3, *p4;
-  GtkTreeIter iter;
-  GError *err = NULL;
+//GtkTreeModel *init_model(void) {
+//    
+//  GtkListStore *list_store;
+//  GdkPixbuf *p1, *p2, *p3, *p4;
+//  GtkTreeIter iter;
+//  GError *err = NULL;
+//
+//  p1 = pixbuf_inline(PIXBUF_INLINE_FOLDER_CLOSED); 
+//  p2 = pixbuf_inline(PIXBUF_INLINE_FOLDER_LOCKED);
+//  p3 = pixbuf_inline(PIXBUF_INLINE_FOLDER_OPEN);
+//  p4 = pixbuf_inline(PIXBUF_INLINE_FOLDER_UP);
+//
+//
+//  //p1 = gdk_pixbuf_new_from_file("ubuntu.png", &err); 
+//  //p2 = gdk_pixbuf_new_from_file("gnumeric.png", &err);
+//  //p3 = gdk_pixbuf_new_from_file("blender.png", &err);
+//  //p4 = gdk_pixbuf_new_from_file("inkscape.png", &err);
+//
+//  //assert(err==NULL);    
+//
+//  list_store = gtk_list_store_new(NUM_COLS, 
+//      G_TYPE_STRING, GDK_TYPE_PIXBUF);
+//      
+//  gtk_list_store_append(list_store, &iter);
+//  gtk_list_store_set(list_store, &iter, COL_DISPLAY_NAME, "Ubuntu", COL_PIXBUF, p1, -1);
+//
+//  gtk_list_store_append(list_store, &iter);
+//  gtk_list_store_set(list_store, &iter, COL_DISPLAY_NAME, "Gnumeric", COL_PIXBUF, p2, -1);
+//
+//  gtk_list_store_append(list_store, &iter);
+//  gtk_list_store_set(list_store, &iter, COL_DISPLAY_NAME, "Blender", COL_PIXBUF, p3, -1);
+//
+//  gtk_list_store_append(list_store, &iter);
+//  gtk_list_store_set(list_store, &iter, COL_DISPLAY_NAME, "Inkscape", COL_PIXBUF, p4, -1);
+//  
+//  g_object_unref(p1);
+//  g_object_unref(p2);
+//  g_object_unref(p3);
+//  g_object_unref(p4);    
+//
+//  return GTK_TREE_MODEL(list_store);
+//}
 
-  p1 = pixbuf_inline(PIXBUF_INLINE_FOLDER_CLOSED); 
-  p2 = pixbuf_inline(PIXBUF_INLINE_FOLDER_LOCKED);
-  p3 = pixbuf_inline(PIXBUF_INLINE_FOLDER_OPEN);
-  p4 = pixbuf_inline(PIXBUF_INLINE_FOLDER_UP);
 
 
-  //p1 = gdk_pixbuf_new_from_file("ubuntu.png", &err); 
-  //p2 = gdk_pixbuf_new_from_file("gnumeric.png", &err);
-  //p3 = gdk_pixbuf_new_from_file("blender.png", &err);
-  //p4 = gdk_pixbuf_new_from_file("inkscape.png", &err);
+//static GtkWidget *bar_pane_rating_menu(PaneHistogramData *phd)
+static GtkWidget *bar_pane_rating_menu(void)
+{
+	GtkWidget *menu;
 
-  //assert(err==NULL);    
+	menu = popup_menu_short_lived();
 
-  list_store = gtk_list_store_new(NUM_COLS, 
-      G_TYPE_STRING, GDK_TYPE_PIXBUF);
-      
-  gtk_list_store_append(list_store, &iter);
-  gtk_list_store_set(list_store, &iter, COL_DISPLAY_NAME, "Ubuntu", COL_PIXBUF, p1, -1);
+	/* use the same strings as in layout_util.c */
+	menu_item_add(menu, _("Histogram on _Red"),   NULL, NULL);
+	menu_item_add(menu, _("Histogram on _Green"), NULL, NULL);
+	//menu_item_add_radio(menu, _("Histogram on _Blue"),  GINT_TO_POINTER(HCHAN_B), (channel == HCHAN_B), G_CALLBACK(bar_pane_histogram_popup_channels_cb), phd);
+	//menu_item_add_radio(menu, _("_Histogram on RGB"),   GINT_TO_POINTER(HCHAN_RGB), (channel == HCHAN_RGB), G_CALLBACK(bar_pane_histogram_popup_channels_cb), phd);
+	//menu_item_add_radio(menu, _("Histogram on _Value"), GINT_TO_POINTER(HCHAN_MAX), (channel == HCHAN_MAX), G_CALLBACK(bar_pane_histogram_popup_channels_cb), phd);
+	//
+	//menu_item_add_divider(menu);
+	//
+	//menu_item_add_radio(menu, _("Li_near Histogram"), GINT_TO_POINTER(0), (mode == 0), G_CALLBACK(bar_pane_histogram_popup_mode_cb), phd);
+	//menu_item_add_radio(menu, _("L_og Histogram"),    GINT_TO_POINTER(1), (mode == 1), G_CALLBACK(bar_pane_histogram_popup_mode_cb), phd);
 
-  gtk_list_store_append(list_store, &iter);
-  gtk_list_store_set(list_store, &iter, COL_DISPLAY_NAME, "Gnumeric", COL_PIXBUF, p2, -1);
+	return menu;
+}
 
-  gtk_list_store_append(list_store, &iter);
-  gtk_list_store_set(list_store, &iter, COL_DISPLAY_NAME, "Blender", COL_PIXBUF, p3, -1);
+static gboolean bar_pane_rating_press_cb(GtkWidget *widget, GdkEventButton *bevent, gpointer data)
+{
+	//PaneHistogramData *phd = data;
 
-  gtk_list_store_append(list_store, &iter);
-  gtk_list_store_set(list_store, &iter, COL_DISPLAY_NAME, "Inkscape", COL_PIXBUF, p4, -1);
-  
-  g_object_unref(p1);
-  g_object_unref(p2);
-  g_object_unref(p3);
-  g_object_unref(p4);    
+	if (bevent->button == MOUSE_BUTTON_RIGHT)
+		{
+		GtkWidget *menu;
 
-  return GTK_TREE_MODEL(list_store);
+		menu = bar_pane_rating_menu();
+		gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, bevent->button, bevent->time);
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 
-static set_rating_stars(PaneCommentData *pcd, int rating)
+
+
+
+
+
+static void bar_rating_set_stars(PaneCommentData *pcd, int rating)
 {
   GdkPixbuf *img_buf;
+
   int index, i;
 
   if (rating < -1) rating = -1;
@@ -289,12 +349,12 @@ static set_rating_stars(PaneCommentData *pcd, int rating)
 
   if (rating == -1)
   {
-    img_buf = pixbuf_inline(PIXBUF_INLINE_FOLDER_LOCKED); 
+    img_buf = pixbuf_inline(PIXBUF_INLINE_CROSS_BLACK); 
     index = 1;
   }
   else
   {
-    img_buf = pixbuf_inline(PIXBUF_INLINE_FOLDER_CLOSED); 
+    img_buf = pixbuf_inline(PIXBUF_INLINE_CROSS_GREY); 
     index = rating + 1;
   }
   gtk_image_set_from_pixbuf(GTK_IMAGE(pcd->rating_stars[0]), img_buf);
@@ -307,7 +367,7 @@ static set_rating_stars(PaneCommentData *pcd, int rating)
   }
 
   
-  log_printf("DBG PABLO index %d, i %d\n", index, i);
+  //log_printf("DBG PABLO index %d, i %d\n", index, i);
 
   g_object_unref(img_buf);
 
@@ -319,150 +379,190 @@ static set_rating_stars(PaneCommentData *pcd, int rating)
   g_object_unref(img_buf);
 }
 
+static void bar_rating_set_rating(PaneCommentData *pcd, int rating)
+{
+        gchar *comment;
+
+        //old_rating = pcd->rating;
+
+        //log_printf("DBG PABLO evt_box_event, type :%d, button: %d, data %d\n", event->type, event->button, GPOINTER_TO_INT(data));
+        log_printf("DBG PABLO pcd* 0x%x\n", GPOINTER_TO_INT(pcd));
+        //log_printf("DBG PABLO evt_box_event, x :%f, y: %f, x_root: %f, y_root: %f\n", event->x, event->y, event->x_root, event->y_root);
+
+
+        //log_printf("GDK_BUTTON_PRESS %d, GDK_2BUTTON_PRESS %d, GDK_3BUTTON_PRESS %d, GDK_BUTTON_RELEASE %d\n", GDK_BUTTON_PRESS, GDK_2BUTTON_PRESS, GDK_3BUTTON_PRESS, GDK_BUTTON_RELEASE);
+        //rating = GPOINTER_TO_INT(data);
+        //if (old_rating == -1 && rating == -1) rating = 0;
+        //if (old_rating == rating) rating--;
+
+        if (rating < -1) rating = -1;
+        if (rating > 5) rating = 5;
+
+        pcd->rating = rating;
+        bar_rating_set_stars(pcd, rating);
+
+        metadata_write_int(pcd->fd, pcd->key, pcd->rating);
+}
+
+void bar_rating_set(int rating)
+{
+     bar_rating_set_rating(nasty_hack_pointer, rating);
+}
+
+
 gboolean evt_box_event(GtkWidget *widget, GdkEventButton *event, gpointer data)
 {
-	//PaneCommentData *pcd = (PaneCommentData*)g_object_get_data(G_OBJECT(widget), "pane_data");
-	PaneCommentData *pcd = g_object_get_data(G_OBJECT(widget), "pane_data");
-  int rating, old_rating;
+        //PaneCommentData *pcd = (PaneCommentData*)g_object_get_data(G_OBJECT(widget), "pane_data");
+        PaneCommentData *pcd = g_object_get_data(G_OBJECT(widget), "pane_data");
+        if (event->button == MOUSE_BUTTON_LEFT)
+        {    
+                int rating = GPOINTER_TO_INT(data);
+                int old_rating;
 
-  old_rating = pcd->rating;
+                old_rating = pcd->rating;
 
-  log_printf("DBG PABLO evt_box_event, type :%d, button: %d, data %d\n", event->type, event->button, GPOINTER_TO_INT(data));
-  log_printf("DBG PABLO pcd* 0x%x\n", pcd);
-  //log_printf("DBG PABLO evt_box_event, x :%f, y: %f, x_root: %f, y_root: %f\n", event->x, event->y, event->x_root, event->y_root);
+                if (rating == 0) rating = -1;
+                if (old_rating == -1 && rating == -1) rating = 0;
+                if (old_rating == rating) rating--;
 
+                bar_rating_set_rating(pcd, rating);
+        }
 
-  //log_printf("GDK_BUTTON_PRESS %d, GDK_2BUTTON_PRESS %d, GDK_3BUTTON_PRESS %d, GDK_BUTTON_RELEASE %d\n", GDK_BUTTON_PRESS, GDK_2BUTTON_PRESS, GDK_3BUTTON_PRESS, GDK_BUTTON_RELEASE);
-  rating = GPOINTER_TO_INT(data);
-  if (rating == 0) rating = -1;
-  if (old_rating == -1 && rating == -1) rating = 0;
-  if (old_rating == rating) rating--;
+        else if (event->button == MOUSE_BUTTON_RIGHT)
+        {
+                GtkWidget *menu;
 
-  pcd->rating = rating;
-  set_rating_stars(pcd, rating);
-  
+                menu = bar_pane_rating_menu();
+                gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, event->button, event->time);
+                return TRUE;
+        }
 
-  return TRUE;
+        return TRUE;
 }
 
 
 static GtkWidget *bar_pane_comment_new(const gchar *id, const gchar *title, const gchar *key, gboolean expanded, gint height)
 {
-	PaneCommentData *pcd;
-	GtkWidget *scrolled;
-	GtkWidget *hbox, *vbox, *evt_box[6];
-	GtkTextBuffer *buffer;
-	GtkWidget *temp_text;
-  //GtkWidget *icon_view, *icon_view_1, *icon_view_2;
-  GdkPixbuf *p1;
-  GdkPixbuf *p2;
-  int i;
+        PaneCommentData *pcd;
+        GtkWidget *scrolled;
+        GtkWidget *hbox, *vbox, *evt_box[6];
+        GtkTextBuffer *buffer;
+        GtkWidget *temp_text;
+        //GtkWidget *icon_view, *icon_view_1, *icon_view_2;
+        GtkWidget *p1;
+        GdkPixbuf *p2;
+        int i;
 
-	pcd = g_new0(PaneCommentData, 1);
-	
-	pcd->pane.pane_set_fd = bar_pane_comment_set_fd;
-	pcd->pane.pane_event = bar_pane_comment_event;
-	pcd->pane.pane_write_config = bar_pane_comment_write_config;
-	pcd->pane.title = bar_pane_expander_title(title);
-	pcd->pane.id = g_strdup(id);
-	pcd->pane.type = PANE_RATING;
+        pcd = g_new0(PaneCommentData, 1);
 
-	pcd->pane.expanded = expanded;
-	
-	pcd->key = g_strdup(key);
-	pcd->height = height;
+        pcd->pane.pane_set_fd = bar_pane_comment_set_fd;
+        pcd->pane.pane_event = bar_pane_comment_event;
+        pcd->pane.pane_write_config = bar_pane_comment_write_config;
+        pcd->pane.title = bar_pane_expander_title(title);
+        pcd->pane.id = g_strdup(id);
+        pcd->pane.type = PANE_RATING;
 
-	scrolled = gtk_scrolled_window_new(NULL, NULL);
-	
-  hbox = gtk_hbox_new(FALSE, 5);
-  vbox = gtk_vbox_new(TRUE, 10);
+        pcd->pane.expanded = expanded;
 
-	pcd->comment_view = gtk_text_view_new();
-	temp_text = gtk_text_view_new();
- 
-  //icon_view = gtk_icon_view_new_with_model(init_model());
-  //gtk_icon_view_set_text_column(GTK_ICON_VIEW(icon_view), COL_DISPLAY_NAME);
-  //gtk_icon_view_set_pixbuf_column(GTK_ICON_VIEW(icon_view), COL_PIXBUF);
-  //gtk_icon_view_set_selection_mode(GTK_ICON_VIEW(icon_view), GTK_SELECTION_MULTIPLE);
-  p1 = pixbuf_inline(PIXBUF_INLINE_STAR_EMPTY); 
-  p2 = pixbuf_inline(PIXBUF_INLINE_STAR_FULL); 
- 
-  for (i = 0; i < 6; i++)
-  {
-    pcd->rating_stars[i] = gtk_image_new_from_pixbuf(p1);
-    evt_box[i] = gtk_event_box_new();
-    g_object_set_data(G_OBJECT(evt_box[i]), "pane_data", pcd);
+        pcd->key = g_strdup(key);
+        pcd->height = height;
 
-    gtk_container_add(GTK_CONTAINER(evt_box[i]), pcd->rating_stars[i]);
+        scrolled = gtk_scrolled_window_new(NULL, NULL);
 
-    gtk_box_pack_start(GTK_BOX(hbox), evt_box[i], FALSE, TRUE, 0);
+        hbox = gtk_hbox_new(FALSE, 5);
+        vbox = gtk_vbox_new(TRUE, 10);
 
-    gtk_signal_connect (GTK_OBJECT(evt_box[i]), "button_press_event",
-                        G_CALLBACK(evt_box_event), GINT_TO_POINTER(i));
-  }
-  
-   
-  
- // icon_view_1 = gtk_image_new_from_pixbuf(p1);
- // icon_view_2 = gtk_image_new_from_pixbuf(p2);
-  g_object_unref(p1);
-  g_object_unref(p2);
+        pcd->comment_view = gtk_text_view_new();
+        temp_text = gtk_text_view_new();
 
-  pcd->rating = 0;
-  set_rating_stars(pcd, pcd->rating);
+        //icon_view = gtk_icon_view_new_with_model(init_model());
+        //gtk_icon_view_set_text_column(GTK_ICON_VIEW(icon_view), COL_DISPLAY_NAME);
+        //gtk_icon_view_set_pixbuf_column(GTK_ICON_VIEW(icon_view), COL_PIXBUF);
+        //gtk_icon_view_set_selection_mode(GTK_ICON_VIEW(icon_view), GTK_SELECTION_MULTIPLE);
+        p1 = pixbuf_inline(PIXBUF_INLINE_STAR_EMPTY); 
+        p2 = pixbuf_inline(PIXBUF_INLINE_STAR_FULL); 
 
-  /* And bind an action to it */
-  //gtk_widget_set_events (evt_box, GDK_BUTTON_PRESS_MASK /*|GDK_BUTTON_RELEASE_MASK*/);
-  //gtk_signal_connect (GTK_OBJECT(evt_box), "button_release_event",
-  //                    G_CALLBACK(evt_box_event), GINT_TO_POINTER(4567));
+        for (i = 0; i < 6; i++)
+        {
+                pcd->rating_stars[i] = gtk_image_new_from_pixbuf(p1);
+                evt_box[i] = gtk_event_box_new();
+                g_object_set_data(G_OBJECT(evt_box[i]), "pane_data", pcd);
 
-  //gtk_container_add(GTK_CONTAINER(evt_box), icon_view_2);
-  //gtk_box_pack_start(GTK_BOX(hbox), icon_view, TRUE, TRUE, 0);
-  //gtk_box_pack_start(GTK_BOX(hbox), evt_box, TRUE, TRUE, 0);
-  //gtk_box_pack_start(GTK_BOX(hbox), icon_view_1, TRUE, TRUE, 0);
+                gtk_container_add(GTK_CONTAINER(evt_box[i]), pcd->rating_stars[i]);
 
-  //g_object_unref(icon_view);
-  //g_object_unref(icon_view_1);
-  //g_object_unref(evt_box);
-	//gtk_widget_show(icon_view);
-	//gtk_widget_show(evt_box);
-	//gtk_widget_show(icon_view_1);
-	//gtk_widget_show(icon_view_2);
-	//gtk_widget_show(hbox);
-	//gtk_widget_show_all(hbox);
+                gtk_box_pack_start(GTK_BOX(hbox), evt_box[i], FALSE, TRUE, 0);
+
+                gtk_signal_connect (GTK_OBJECT(evt_box[i]), "button_press_event",
+                                G_CALLBACK(evt_box_event), GINT_TO_POINTER(i));
+        }
 
 
-	pcd->widget = vbox;
-  gtk_box_pack_start(GTK_BOX(vbox), pcd->comment_view, TRUE, TRUE, 0);
-  gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 10);
-	gtk_widget_show_all(vbox);
-	//pcd->widget = scrolled;
-	g_object_set_data(G_OBJECT(pcd->widget), "pane_data", pcd);
-	g_signal_connect(G_OBJECT(pcd->widget), "destroy",
-			 G_CALLBACK(bar_pane_comment_destroy), pcd);
-	
-	//gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolled), GTK_SHADOW_IN);
-	//gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-	//gtk_widget_set_size_request(pcd->widget, -1, height);
-	//gtk_widget_show(scrolled);
 
-	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(pcd->comment_view), GTK_WRAP_WORD);
-	//gtk_container_add(GTK_CONTAINER(scrolled), pcd->comment_view);
+        // icon_view_1 = gtk_image_new_from_pixbuf(p1);
+        // icon_view_2 = gtk_image_new_from_pixbuf(p2);
+        g_object_unref(p1);
+        g_object_unref(p2);
 
-	g_signal_connect(G_OBJECT(pcd->comment_view), "populate-popup",
-			 G_CALLBACK(bar_pane_comment_populate_popup), pcd);
-	gtk_widget_show(pcd->comment_view);
+        pcd->rating = 0;
+        bar_rating_set_stars(pcd, pcd->rating);
 
-	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(pcd->comment_view));
-	g_signal_connect(G_OBJECT(buffer), "changed",
-			 G_CALLBACK(bar_pane_comment_changed), pcd);
+        /* And bind an action to it */
+        //gtk_widget_set_events (evt_box, GDK_BUTTON_PRESS_MASK /*|GDK_BUTTON_RELEASE_MASK*/);
+        //gtk_signal_connect (GTK_OBJECT(evt_box), "button_release_event",
+        //                    G_CALLBACK(evt_box_event), GINT_TO_POINTER(4567));
+
+        //gtk_container_add(GTK_CONTAINER(evt_box), icon_view_2);
+        //gtk_box_pack_start(GTK_BOX(hbox), icon_view, TRUE, TRUE, 0);
+        //gtk_box_pack_start(GTK_BOX(hbox), evt_box, TRUE, TRUE, 0);
+        //gtk_box_pack_start(GTK_BOX(hbox), icon_view_1, TRUE, TRUE, 0);
+
+        //g_object_unref(icon_view);
+        //g_object_unref(icon_view_1);
+        //g_object_unref(evt_box);
+        //gtk_widget_show(icon_view);
+        //gtk_widget_show(evt_box);
+        //gtk_widget_show(icon_view_1);
+        //gtk_widget_show(icon_view_2);
+        //gtk_widget_show(hbox);
+        //gtk_widget_show_all(hbox);
 
 
-	file_data_register_notify_func(bar_pane_comment_notify_cb, pcd, NOTIFY_PRIORITY_LOW);
+        pcd->widget = vbox;
+        gtk_box_pack_start(GTK_BOX(vbox), pcd->comment_view, TRUE, TRUE, 0);
+        gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 10);
+        gtk_widget_show_all(vbox);
+        //pcd->widget = scrolled;
+        g_object_set_data(G_OBJECT(pcd->widget), "pane_data", pcd);
+        g_signal_connect(G_OBJECT(pcd->widget), "destroy",
+                        G_CALLBACK(bar_pane_comment_destroy), pcd);
 
-  log_printf("DBG PABLO init pcd* 0x%x\n", pcd);
+        //g_signal_connect(G_OBJECT(hbox), "button_press_event", G_CALLBACK(bar_pane_rating_press_cb), NULL);
 
-	return pcd->widget;
+        //gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolled), GTK_SHADOW_IN);
+        //gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+        //gtk_widget_set_size_request(pcd->widget, -1, height);
+        //gtk_widget_show(scrolled);
+
+        gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(pcd->comment_view), GTK_WRAP_WORD);
+        //gtk_container_add(GTK_CONTAINER(scrolled), pcd->comment_view);
+
+        //	g_signal_connect(G_OBJECT(pcd->comment_view), "populate-popup",
+        //			 G_CALLBACK(bar_pane_comment_populate_popup), pcd);
+
+        gtk_widget_show(pcd->comment_view);
+
+        buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(pcd->comment_view));
+        g_signal_connect(G_OBJECT(buffer), "changed",
+                        G_CALLBACK(bar_pane_comment_changed), pcd);
+
+
+        file_data_register_notify_func(bar_pane_comment_notify_cb, pcd, NOTIFY_PRIORITY_LOW);
+
+        log_printf("DBG PABLO init pcd* 0x%x\n", pcd);
+
+        nasty_hack_pointer = pcd;
+
+        return pcd->widget;
 }
 
 GtkWidget *bar_pane_rating_new_from_config(const gchar **attribute_names, const gchar **attribute_values)

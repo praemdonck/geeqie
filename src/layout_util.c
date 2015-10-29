@@ -16,6 +16,7 @@
 
 #include "advanced_exif.h"
 #include "bar_sort.h"
+#include "bar_rating.h"
 #include "bar.h"
 #include "cache_maint.h"
 #include "collect.h"
@@ -747,6 +748,22 @@ static void layout_menu_histogram_mode_cb(GtkRadioAction *action, GtkRadioAction
 	image_osd_histogram_set_mode(lw->image, mode);
 }
 
+static void layout_menu_rating_cb(GtkRadioAction *action, GtkRadioAction *current, gpointer data)
+{
+	LayoutWindow *lw = data;
+	gint rating = gtk_radio_action_get_current_value(action);
+	//GtkToggleAction *histogram_action = GTK_TOGGLE_ACTION(gtk_action_group_get_action(lw->action_group, "ImageHistogram"));
+
+        log_printf("DBG PABLO layout_menu_rating_cb, %d\n", rating);
+
+        bar_rating_set(rating);
+
+	//if (mode < 0 || mode > 1) return;
+	
+	//gtk_toggle_action_set_active(histogram_action, TRUE); /* this calls layout_menu_histogram_cb */
+	//image_osd_histogram_set_mode(lw->image, mode);
+}
+
 static void layout_menu_refresh_cb(GtkAction *action, gpointer data)
 {
 	LayoutWindow *lw = data;
@@ -1247,6 +1264,7 @@ static GtkActionEntry menu_entries[] = {
   { "GoMenu",		NULL,			N_("_Go"),				NULL, 			NULL,					NULL },
   { "EditMenu",		NULL,			N_("_Edit"),				NULL, 			NULL,					NULL },
   { "SelectMenu",	NULL,			N_("_Select"),				NULL, 			NULL,					NULL },
+  { "RatingMenu",	NULL,			N_("_Rating"),				NULL, 			NULL,					NULL },
   { "OrientationMenu",	NULL,			N_("_Orientation"),			NULL, 			NULL,					NULL },
   { "ExternalMenu",	NULL,			N_("E_xternal Editors"),		NULL, 			NULL,					NULL },
   { "PreferencesMenu",	NULL,			N_("P_references"),			NULL, 			NULL,					NULL },
@@ -1348,7 +1366,7 @@ static GtkActionEntry menu_entries[] = {
   { "HistogramModeCycle",NULL,			N_("Cycle through histogram mo_des"),	"J",			N_("Cycle through histogram modes"),	CB(layout_menu_histogram_toggle_mode_cb) },
   { "HideTools",	NULL,			N_("_Hide file list"),			"<control>H",		N_("Hide file list"),			CB(layout_menu_hide_cb) },
   { "SlideShowPause",	GTK_STOCK_MEDIA_PAUSE,	N_("_Pause slideshow"), 		"P",			N_("Pause slideshow"), 			CB(layout_menu_slideshow_pause_cb) },
-  { "Refresh",		GTK_STOCK_REFRESH,	N_("_Refresh"),				"R",			N_("Refresh"),				CB(layout_menu_refresh_cb) },
+  { "Refresh",		GTK_STOCK_REFRESH,	N_("_Refresh"),				NULL,			N_("Refresh"),				CB(layout_menu_refresh_cb) },
   { "HelpContents",	GTK_STOCK_HELP,		N_("_Contents"),			"F1",			N_("Contents"),				CB(layout_menu_help_cb) },
   { "HelpShortcuts",	NULL,			N_("_Keyboard shortcuts"),		NULL,			N_("Keyboard shortcuts"),		CB(layout_menu_help_keys_cb) },
   { "HelpNotes",	NULL,			N_("_Release notes"),			NULL,			N_("Release notes"),			CB(layout_menu_notes_cb) },
@@ -1413,6 +1431,15 @@ static GtkRadioActionEntry menu_histogram_mode[] = {
   { "HistogramModeLog",	NULL,			N_("_Log Histogram"),			NULL,			N_("Log Histogram"),		1 },
 };
 
+static GtkRadioActionEntry menu_rating[] = {
+  { "RatingR", 	        NULL,			N_("Rating Rejected"),			"R",			N_("Rating Rejected"),		-1 },
+  { "Rating0", 	        NULL,			N_("Rating 0"),				"0",			N_("Rating 0"),			0 },
+  { "Rating1", 	        NULL,			N_("Rating 1"),				"1",			N_("Rating 1"),			1 },
+  { "Rating2", 	        NULL,			N_("Rating 2"),				"2",			N_("Rating 2"),			2 },
+  { "Rating3", 	        NULL,			N_("Rating 3"),				"3",			N_("Rating 3"),			3 },
+  { "Rating4", 	        NULL,			N_("Rating 4"),				"4",			N_("Rating 4"),			4 },
+  { "Rating5", 	        NULL,			N_("Rating 5"),				"5",			N_("Rating 5"),			5 },
+};
 
 #undef CB
 
@@ -1466,6 +1493,16 @@ static const gchar *menu_ui_description =
 "      <separator/>"
 "      <menuitem action='ShowMarks'/>"
 "      <placeholder name='MarksSection'/>"
+"      <separator/>"
+"    </menu>"
+"    <menu action='RatingMenu'>"
+"      <menuitem action='RatingR'/>"
+"      <menuitem action='Rating0'/>"
+"      <menuitem action='Rating1'/>"
+"      <menuitem action='Rating2'/>"
+"      <menuitem action='Rating3'/>"
+"      <menuitem action='Rating4'/>"
+"      <menuitem action='Rating5'/>"
 "      <separator/>"
 "    </menu>"
 "    <menu action='EditMenu'>"
@@ -1676,10 +1713,10 @@ static void layout_actions_setup_marks(LayoutWindow *lw)
 
 	for (mark = 1; mark <= FILEDATA_MARKS_SIZE; mark++)
 		{
-		layout_actions_setup_mark(lw, mark, "Mark%d", 		_("Mark _%d"), NULL, NULL, NULL);
+		layout_actions_setup_mark(lw, mark, "Mark%d", 		_("Mark _%d"),  			NULL, 		NULL, NULL);
 		layout_actions_setup_mark(lw, mark, "SetMark%d", 	_("_Set mark %d"), 			NULL, 		_("Set mark %d"), G_CALLBACK(layout_menu_set_mark_sel_cb));
 		layout_actions_setup_mark(lw, mark, "ResetMark%d", 	_("_Reset mark %d"), 			NULL, 		_("Reset mark %d"), G_CALLBACK(layout_menu_res_mark_sel_cb));
-		layout_actions_setup_mark(lw, mark, "ToggleMark%d", 	_("_Toggle mark %d"), 			"%d",  		_("Toggle mark %d"), G_CALLBACK(layout_menu_toggle_mark_sel_cb));
+		layout_actions_setup_mark(lw, mark, "ToggleMark%d", 	_("_Toggle mark %d"), 			NULL,   	_("Toggle mark %d"), G_CALLBACK(layout_menu_toggle_mark_sel_cb));
 		layout_actions_setup_mark(lw, mark, "ToggleMark%dAlt1",	_("_Toggle mark %d"), 			"KP_%d", 	_("Toggle mark %d"), G_CALLBACK(layout_menu_toggle_mark_sel_cb));
 		layout_actions_setup_mark(lw, mark, "SelectMark%d", 	_("Se_lect mark %d"), 			"<control>%d", 	_("Select mark %d"), G_CALLBACK(layout_menu_sel_mark_cb));
 		layout_actions_setup_mark(lw, mark, "SelectMark%dAlt1",	_("_Select mark %d"), 			"<control>KP_%d", _("Select mark %d"), G_CALLBACK(layout_menu_sel_mark_cb));
@@ -1908,6 +1945,8 @@ void layout_actions_setup(LayoutWindow *lw)
 	gtk_action_group_add_radio_actions(lw->action_group, menu_histogram_channel, G_N_ELEMENTS(menu_histogram_channel), 0, G_CALLBACK(layout_menu_histogram_channel_cb), lw);
 
 	gtk_action_group_add_radio_actions(lw->action_group, menu_histogram_mode, G_N_ELEMENTS(menu_histogram_mode), 0, G_CALLBACK(layout_menu_histogram_mode_cb), lw);
+
+	gtk_action_group_add_radio_actions(lw->action_group, menu_rating, G_N_ELEMENTS(menu_rating), 0, G_CALLBACK(layout_menu_rating_cb), lw);
 
 
 
