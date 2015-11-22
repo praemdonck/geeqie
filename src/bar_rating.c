@@ -23,6 +23,7 @@
 #include "ui_misc.h"
 #include "rcfile.h"
 #include "layout.h"
+#include "layout_util.h"
 
 
 /*
@@ -64,7 +65,7 @@ static void bar_pane_comment_write(PaneCommentData *pcd)
 static void bar_pane_comment_update(PaneCommentData *pcd)
 {
 	//gchar *comment;
-	guint64 rating;
+	int rating;
 	gchar string[50];
 	
 	GtkTextBuffer *comment_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(pcd->comment_view));
@@ -72,9 +73,11 @@ static void bar_pane_comment_update(PaneCommentData *pcd)
 	g_signal_handlers_block_by_func(comment_buffer, bar_pane_comment_changed, pcd);
 
 	//comment = metadata_read_string(pcd->fd, pcd->key, METADATA_PLAIN);
-	rating = metadata_read_int(pcd->fd, pcd->key, 0);
+	rating = (int)metadata_read_int(pcd->fd, pcd->key, 0);
 
-	g_snprintf(string, sizeof(string), "%ld", rating);
+  if (rating == 65535) rating = -1;
+
+	g_snprintf(string, sizeof(string), "%d", rating);
 
 	//gtk_text_buffer_set_text(comment_buffer,
 	//			 (comment) ? comment : "", -1);
@@ -84,6 +87,8 @@ static void bar_pane_comment_update(PaneCommentData *pcd)
 	
   pcd->rating = rating;
   bar_rating_set_stars(pcd, rating);
+  log_printf("DBG PABLO commend update rating* %d\n", rating);
+  //layout_menu_rating_set(rating);
 
 	g_signal_handlers_unblock_by_func(comment_buffer, bar_pane_comment_changed, pcd);
 
@@ -426,6 +431,8 @@ gboolean evt_box_event(GtkWidget *widget, GdkEventButton *event, gpointer data)
                 if (old_rating == rating) rating--;
 
                 bar_rating_set_rating(pcd, rating);
+
+                layout_menu_rating_set(rating);
         }
 
         else if (event->button == MOUSE_BUTTON_RIGHT)
@@ -449,7 +456,7 @@ static GtkWidget *bar_pane_comment_new(const gchar *id, const gchar *title, cons
         GtkTextBuffer *buffer;
         GtkWidget *temp_text;
         //GtkWidget *icon_view, *icon_view_1, *icon_view_2;
-        GtkWidget *p1;
+        GdkPixbuf *p1;
         GdkPixbuf *p2;
         int i;
 

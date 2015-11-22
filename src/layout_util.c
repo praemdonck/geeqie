@@ -58,6 +58,10 @@ static gboolean layout_bar_enabled(LayoutWindow *lw);
 static gboolean layout_bar_sort_enabled(LayoutWindow *lw);
 static void layout_util_sync_views(LayoutWindow *lw);
 
+
+static LayoutWindow *nasty_hack_pointer_lw = NULL;
+
+
 /*
  *-----------------------------------------------------------------------------
  * keyboard handler
@@ -748,6 +752,18 @@ static void layout_menu_histogram_mode_cb(GtkRadioAction *action, GtkRadioAction
 	image_osd_histogram_set_mode(lw->image, mode);
 }
 
+
+void layout_menu_rating_set(int rating)
+{
+  GtkRadioAction *action = GTK_RADIO_ACTION(gtk_action_group_get_action(nasty_hack_pointer_lw->action_group, "RatingR"));
+  gint previous = gtk_radio_action_get_current_value(action);
+  if (previous != rating)
+    gtk_radio_action_set_current_value(action, rating);
+}
+
+
+
+
 static void layout_menu_rating_cb(GtkRadioAction *action, GtkRadioAction *current, gpointer data)
 {
 	LayoutWindow *lw = data;
@@ -755,6 +771,8 @@ static void layout_menu_rating_cb(GtkRadioAction *action, GtkRadioAction *curren
 	//GtkToggleAction *histogram_action = GTK_TOGGLE_ACTION(gtk_action_group_get_action(lw->action_group, "ImageHistogram"));
 
         log_printf("DBG PABLO layout_menu_rating_cb, %d\n", rating);
+        
+        log_printf("action* %lx, current* %lx, get_action* %lx\n", (unsigned long)action, (unsigned long)current, (unsigned long)gtk_action_group_get_action(lw->action_group, "RatingR"));
 
         bar_rating_set(rating);
 
@@ -1983,6 +2001,9 @@ void layout_actions_setup(LayoutWindow *lw)
 	DEBUG_1("%s layout_actions_setup: actions_add_window", get_exec_time());
 	layout_actions_add_window(lw, lw->window);
 	DEBUG_1("%s layout_actions_setup: end", get_exec_time());
+
+
+  nasty_hack_pointer_lw = lw;
 }
 
 static gint layout_editors_reload_idle_id = -1;
