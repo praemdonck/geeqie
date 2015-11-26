@@ -31,11 +31,13 @@ gboolean metadata_write_revert(FileData *fd, const gchar *key);
 gboolean metadata_write_list(FileData *fd, const gchar *key, const GList *values);
 gboolean metadata_write_string(FileData *fd, const gchar *key, const char *value);
 gboolean metadata_write_int(FileData *fd, const gchar *key, guint64 value);
+gboolean metadata_write_rating(FileData *fd, gint value);
 
 GList *metadata_read_list(FileData *fd, const gchar *key, MetadataFormat format);
 gchar *metadata_read_string(FileData *fd, const gchar *key, MetadataFormat format);
 guint64 metadata_read_int(FileData *fd, const gchar *key, guint64 fallback);
 gdouble metadata_read_GPS_coord(FileData *fd, const gchar *key, gdouble fallback);
+gint metadata_read_rating(FileData *fd);
 
 gboolean metadata_append_string(FileData *fd, const gchar *key, const char *value);
 gboolean metadata_append_list(FileData *fd, const gchar *key, const GList *values);
@@ -58,6 +60,7 @@ enum {
 extern GtkTreeStore *keyword_tree;
 
 void meta_data_connect_mark_with_keyword(GtkTreeModel *keyword_tree, GtkTreeIter *kw_iter, gint mark);
+void meta_data_connect_mark_with_rating(gint rating, gint mark);
 
 
 gchar *keyword_get_name(GtkTreeModel *keyword_tree, GtkTreeIter *iter);

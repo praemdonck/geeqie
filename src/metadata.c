@@ -678,6 +678,19 @@ gboolean metadata_append_list(FileData *fd, const gchar *key, const GList *value
 		}
 }
 
+gint metadata_read_rating(FileData *fd)
+{
+  return metadata_read_int(fd, KEYWORD_RATING, 0);
+}
+
+gboolean metadata_write_rating(FileData *fd, gint value)
+{
+  return metadata_write_int(fd, KEYWORD_RATING, value);
+}
+
+
+
+
 /**
  * \see find_string_in_list
  */
@@ -790,6 +803,41 @@ GList *string_to_keywords_list(const gchar *text)
 	return list;
 }
 
+
+
+// Function called when image is loaded/changed to check if mark need to be set
+gboolean meta_data_get_rating_mark(FileData *fd, gint n, gpointer data)
+{
+  log_printf("DBG PABLO meta_data_get_rating_mark, mark rating: %d, mark: %d, image rating %d\n", GPOINTER_TO_INT(data), n, metadata_read_rating(fd));
+  return metadata_read_rating(fd) == GPOINTER_TO_INT(data);
+}
+
+
+// Function called when mark set to update rating
+gboolean meta_data_set_rating_mark(FileData *fd, gint n, gboolean value, gpointer data)
+{
+  gint rating = GPOINTER_TO_INT(data);
+  if (!value) rating--;
+  if (rating == -2) rating = 0;
+  log_printf("DBG PABLO meta_data_set_rating_mark, rating: %d, mark: %d, value %d\n", rating, n, value);
+  metadata_write_rating(fd, rating);
+  return 1;
+}
+
+void meta_data_clear_rating_mark(gpointer data)
+{
+    log_printf("DBG PABLO meta_data_clear_rating_mark, data: %d\n", GPOINTER_TO_INT(data));
+}
+
+
+void meta_data_connect_mark_with_rating(gint rating, gint mark)
+{
+		//file_data_get_registered_mark_func(i, &get_mark_func, &set_mark_func, &mark_func_data);
+		file_data_register_mark_func(mark, meta_data_get_rating_mark, meta_data_set_rating_mark, GINT_TO_POINTER(rating), meta_data_clear_rating_mark);
+    log_printf("DBG PABLO meta_data_connect_mark_with_rating, rating: %d, mark: %d\n", rating, mark);
+}
+
+
 /*
  * keywords to marks
  */
@@ -810,6 +858,7 @@ gboolean meta_data_get_keyword_mark(FileData *fd, gint n, gpointer data)
 			found = TRUE;
 
 		}
+  log_printf("DBG PABLO meta_data_get_keyword_mark, found: %d, n: %d, file: %s\n", found, n, fd->name);
 	return found;
 }
 
@@ -837,6 +886,9 @@ gboolean meta_data_set_keyword_mark(FileData *fd, gint n, gboolean value, gpoint
 		}
 
 	string_list_free(keywords);
+
+  log_printf("DBG PABLO meta_data_set_keyword_mark, n: %d file: %s\n", n, fd->name);
+
 	return TRUE;
 }
 
@@ -850,6 +902,8 @@ void meta_data_connect_mark_with_keyword(GtkTreeModel *keyword_tree, GtkTreeIter
 	gpointer mark_func_data;
 
 	gint i;
+
+  log_printf("DBG PABLO meta_data_connect_mark_with_keyword, mark: %d\n", mark);
 
 	for (i = 0; i < FILEDATA_MARKS_SIZE; i++)
 		{
