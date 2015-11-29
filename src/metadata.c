@@ -573,6 +573,7 @@ GList *metadata_read_list(FileData *fd, const gchar *key, MetadataFormat format)
 	exif = exif_read_fd(fd); /* this is cached, thus inexpensive */
 	if (!exif) return NULL;
 	list = exif_get_metadata(exif, key, format);
+
 	exif_free_fd(fd, exif);
 	return list;
 }
@@ -599,6 +600,7 @@ guint64 metadata_read_int(FileData *fd, const gchar *key, guint64 fallback)
 	
 	ret = g_ascii_strtoull(string, &endptr, 10);
 	if (string == endptr) ret = fallback;
+
 	g_free(string);
 	return ret;
 }
@@ -680,7 +682,9 @@ gboolean metadata_append_list(FileData *fd, const gchar *key, const GList *value
 
 gint metadata_read_rating(FileData *fd)
 {
-  return metadata_read_int(fd, KEYWORD_RATING, 0);
+  gint res =  metadata_read_int(fd, KEYWORD_RATING, 0);
+  if (res == 65535) res = -1;
+  return res;
 }
 
 gboolean metadata_write_rating(FileData *fd, gint value)
@@ -816,12 +820,12 @@ gboolean meta_data_get_rating_mark(FileData *fd, gint n, gpointer data)
 // Function called when mark set to update rating
 gboolean meta_data_set_rating_mark(FileData *fd, gint n, gboolean value, gpointer data)
 {
-  gint rating = GPOINTER_TO_INT(data);
-  if (!value) rating--;
-  if (rating == -2) rating = 0;
-  log_printf("DBG PABLO meta_data_set_rating_mark, rating: %d, mark: %d, value %d\n", rating, n, value);
-  metadata_write_rating(fd, rating);
-  return 1;
+        gint rating = GPOINTER_TO_INT(data);
+        if (!value) rating--;
+        if (rating == -2) rating = 0;
+        log_printf("DBG PABLO meta_data_set_rating_mark, rating: %d, mark: %d, value %d\n", rating, n, value);
+        metadata_write_rating(fd, rating);
+        return 1;
 }
 
 void meta_data_clear_rating_mark(gpointer data)
@@ -892,6 +896,19 @@ gboolean meta_data_set_keyword_mark(FileData *fd, gint n, gboolean value, gpoint
 	return TRUE;
 }
 
+void meta_data_clear_keyword_mark(gpointer data)
+{
+  log_printf("DBG PABLO meta_data_clear_keyword_mark, data: %d\n", GPOINTER_TO_INT(data));
+
+	GtkTreeIter old_kw_iter;
+	GList *old_path = data;
+	
+	if (keyword_tree_get_iter(GTK_TREE_MODEL(keyword_tree), &old_kw_iter, old_path))
+		{
+		//file_data_register_mark_func(i, NULL, NULL, NULL, NULL);
+		gtk_tree_store_set(GTK_TREE_STORE(keyword_tree), &old_kw_iter, KEYWORD_COLUMN_MARK, "", -1);
+		}
+}
 
 
 void meta_data_connect_mark_with_keyword(GtkTreeModel *keyword_tree, GtkTreeIter *kw_iter, gint mark)
@@ -929,7 +946,8 @@ void meta_data_connect_mark_with_keyword(GtkTreeModel *keyword_tree, GtkTreeIter
 		GList *path;
 		gchar *mark_str;
 		path = keyword_tree_get_path(keyword_tree, kw_iter);
-		file_data_register_mark_func(mark, meta_data_get_keyword_mark, meta_data_set_keyword_mark, path, (GDestroyNotify)string_list_free);
+		//file_data_register_mark_func(mark, meta_data_get_keyword_mark, meta_data_set_keyword_mark, path, (GDestroyNotify)string_list_free);
+		file_data_register_mark_func(mark, meta_data_get_keyword_mark, meta_data_set_keyword_mark, path, (GDestroyNotify)meta_data_clear_keyword_mark);
 		
 		mark_str = g_strdup_printf("%d", mark + 1);
 		gtk_tree_store_set(GTK_TREE_STORE(keyword_tree), kw_iter, KEYWORD_COLUMN_MARK, mark_str, -1);

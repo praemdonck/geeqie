@@ -396,6 +396,8 @@ static void bar_rating_set_rating(PaneCommentData *pcd, int rating)
 {
         gchar *comment;
 
+        if (!pcd->fd) return;
+
         //old_rating = pcd->rating;
 
         //log_printf("DBG PABLO evt_box_event, type :%d, button: %d, data %d\n", event->type, event->button, GPOINTER_TO_INT(data));
