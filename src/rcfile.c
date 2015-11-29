@@ -999,9 +999,6 @@ static void options_parse_bar(GQParserData *parser_data, GMarkupParseContext *co
 			}
 		options_parse_func_push(parser_data, options_parse_leaf, NULL, NULL);
 		}
-		//{
-		//options_parse_func_push(parser_data, options_parse_leaf, NULL, NULL);
-		//}
 	else
 		{
 		log_printf("unexpected in <bar>: <%s>\n", element_name);

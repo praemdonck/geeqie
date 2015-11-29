@@ -117,7 +117,6 @@ static PixbufInline inline_pixbuf_data[] = {
 
 GdkPixbuf *pixbuf_inline(const gchar *key)
 {
-
 	gint i;
 
 	if (!key) return NULL;

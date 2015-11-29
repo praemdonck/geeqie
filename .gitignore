@@ -72,3 +72,4 @@ Makefile.in
 /doc/html/
 src/cscope.out
 src/tags
+src/*.swp

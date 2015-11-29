@@ -140,10 +140,7 @@ static void bar_pane_keywords_write(PaneKeywordsData *pkd)
 
 	list = keyword_list_pull(pkd->keyword_view);
 
-  DEBUG_1("DBG PABLO bar_pane_keywords_write");
-
 	metadata_write_list(pkd->fd, KEYWORD_KEY, list);
-	//metadata_write_int(pkd->fd, KEYWORD_RATING, 3);
 
 	string_list_free(list);
 }
@@ -380,8 +377,6 @@ static void bar_pane_keywords_set_selection(PaneKeywordsData *pkd, gboolean appe
 		{
 		FileData *fd = work->data;
 		work = work->next;
-
-		DEBUG_1("DBG PABLO bar_pane_keywords_set_selection append %d", append);
 
 		if (append)
 			{
@@ -1144,7 +1139,6 @@ static void bar_pane_keywords_add_to_selected_cb(GtkWidget *menu_widget, gpointe
 		{
 		FileData *fd = work->data;
 		work = work->next;
-		DEBUG_1("DBG PABLO bar_pane_keywords_add_to_selected_cb append");
 		metadata_append_list(fd, KEYWORD_KEY, keywords);
 		}
 	filelist_free(list);

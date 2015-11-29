@@ -67,15 +67,6 @@ static const gchar default_config_keywords[] =
 "    </layout>"
 "</gq>";
 
-//static const gchar default_config_rating[] = 
-//"<gq>"
-//"    <layout id = '_current_'>"
-//"        <bar>"
-//"            <pane_comment id = 'rating' expanded = 'true' key = '" KEYWORD_RATING "' height = '40' />"
-//"        </bar>"
-//"    </layout>"
-//"</gq>";
-
 static const gchar default_config_rating[] = 
 "<gq>"
 "    <layout id = '_current_'>"
