@@ -67,7 +67,16 @@ static const gchar default_config_keywords[] =
 "    </layout>"
 "</gq>";
 
-static const gchar default_config_comment[] =
+static const gchar default_config_rating[] = 
+"<gq>"
+"    <layout id = '_current_'>"
+"        <bar>"
+"            <pane_rating id = 'rating' expanded = 'true' key = '" KEYWORD_RATING "' />"
+"        </bar>"
+"    </layout>"
+"</gq>";
+
+static const gchar default_config_comment[] = 
 "<gq>"
 "    <layout id = '_current_'>"
 "        <bar>"
@@ -168,6 +177,7 @@ static const KnownPanes known_panes[] = {
 	{PANE_COMMENT,		"title",	N_("Title"),		default_config_title},
 	{PANE_KEYWORDS,		"keywords",	N_("Keywords"),		default_config_keywords},
 	{PANE_COMMENT,		"comment",	N_("Comment"),		default_config_comment},
+	{PANE_RATING, 		"rating",	N_("Rating"),		default_config_rating},
 	{PANE_EXIF,		"exif",		N_("Exif"),		default_config_exif},
 /* other pre-configured panes */
 	{PANE_EXIF,		"file_info",	N_("File info"),	default_config_file_info},

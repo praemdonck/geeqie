@@ -108,6 +108,10 @@ static PixbufInline inline_pixbuf_data[] = {
 	{ PIXBUF_INLINE_ICON_CONFIG,	icon_config },
 	{ PIXBUF_INLINE_ICON_TOOLS,	icon_tools },
 	{ PIXBUF_INLINE_ICON_VIEW,	icon_view },
+	{ PIXBUF_INLINE_STAR_FULL,	star_full },
+	{ PIXBUF_INLINE_STAR_EMPTY,	star_empty },
+	{ PIXBUF_INLINE_CROSS_BLACK,	cross_black},
+	{ PIXBUF_INLINE_CROSS_GREY,	cross_grey},
 	{ NULL, NULL }
 };
 

@@ -17,7 +17,11 @@ ICONS_INLINE = \
 	icon_book.png		\
 	icon_config.png		\
 	icon_tools.png		\
-	icon_view.png
+	icon_view.png		\
+	cross_black.png		\
+	cross_grey.png 		\
+	star_empty.png		\
+	star_full.png
 
 ICONS_INLINE_PAIRS = \
 	folder_closed		$(srcdir)/folder_closed.png	\
@@ -33,7 +37,11 @@ ICONS_INLINE_PAIRS = \
 	icon_book		$(srcdir)/icon_book.png		\
 	icon_config		$(srcdir)/icon_config.png	\
 	icon_tools		$(srcdir)/icon_tools.png	\
-	icon_view		$(srcdir)/icon_view.png
+	icon_view		$(srcdir)/icon_view.png		\
+	cross_black		$(srcdir)/cross_black.png	\
+	cross_grey		$(srcdir)/cross_grey.png	\
+	star_empty		$(srcdir)/star_empty.png	\
+	star_full		$(srcdir)/star_full.png
 
 icons_inline.h: $(ICONS_INLINE) Makefile.in
 	@(echo '/* Auto generated file, do not edit */'; echo; \

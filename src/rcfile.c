@@ -18,6 +18,7 @@
 
 #include "bar.h"
 #include "bar_comment.h"
+#include "bar_rating.h"
 #include "bar_exif.h"
 #include "bar_histogram.h"
 #include "bar_keywords.h"
@@ -943,6 +944,21 @@ static void options_parse_bar(GQParserData *parser_data, GMarkupParseContext *co
 	else if (g_ascii_strcasecmp(element_name, "clear") == 0)
 		{
 		bar_clear(bar);
+		options_parse_func_push(parser_data, options_parse_leaf, NULL, NULL);
+		}
+	else if (g_ascii_strcasecmp(element_name, "pane_rating") == 0)
+		{
+		GtkWidget *pane = bar_find_pane_by_id(bar, PANE_COMMENT, options_get_id(attribute_names, attribute_values));
+		log_printf("Testing rating element in bar\n");
+		if (pane)
+			{
+			bar_pane_rating_update_from_config(pane, attribute_names, attribute_values);
+			}
+		else
+			{
+			pane = bar_pane_rating_new_from_config(attribute_names, attribute_values);
+			bar_add(bar, pane);
+			}
 		options_parse_func_push(parser_data, options_parse_leaf, NULL, NULL);
 		}
 	else
