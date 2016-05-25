@@ -145,6 +145,16 @@ static void bar_pane_rating_connect_marks_cb(GtkWidget *widget, gpointer data)
 	meta_data_connect_mark_with_rating(-1, i);
 }
 
+static void bar_pane_rating_disconnect_marks_cb(GtkWidget *widget, gpointer data)
+{
+	int i;
+	log_printf("DBG PABLO bar_pane_rating_disconnect_marks_cb %d\n", (int)data);
+	for (i = 0; i < 5; i++) 
+		{
+		meta_data_disconnect_mark_with_rating(i + 1, i);
+		}
+	meta_data_disconnect_mark_with_rating(-1, i);
+}
 
 static GtkWidget *bar_pane_rating_menu(PaneRatingData *prd)
 {
@@ -154,6 +164,7 @@ static GtkWidget *bar_pane_rating_menu(PaneRatingData *prd)
 
 	/* use the same strings as in layout_util.c */
 	menu_item_add(menu, _("Connect marks 1 to 6 to Rating"), G_CALLBACK(bar_pane_rating_connect_marks_cb), GINT_TO_POINTER(128) );
+	menu_item_add(menu, _("Disconnect marks from Rating"), G_CALLBACK(bar_pane_rating_disconnect_marks_cb), GINT_TO_POINTER(128) );
 	menu_item_add_divider(GTK_WIDGET(menu));
 	menu_item_add(GTK_WIDGET(menu), _("Set Rating to selected files"), G_CALLBACK(bar_pane_rating_sel_set_cb), prd);
 

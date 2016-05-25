@@ -968,6 +968,10 @@ void meta_data_connect_mark_with_rating(gint rating, gint mark)
 	file_data_register_mark_func(mark, meta_data_get_rating_mark, meta_data_set_rating_mark, GINT_TO_POINTER(rating), meta_data_clear_rating_mark);
 }
 
+void meta_data_disconnect_mark_with_rating(gint rating, gint mark)
+{
+	file_data_deregister_mark_func(mark, meta_data_get_rating_mark, meta_data_set_rating_mark, GINT_TO_POINTER(rating), meta_data_clear_rating_mark);
+}
 
 /*
  * keywords to marks

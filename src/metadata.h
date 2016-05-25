@@ -63,6 +63,7 @@ extern GtkTreeStore *keyword_tree;
 
 void meta_data_connect_mark_with_keyword(GtkTreeModel *keyword_tree, GtkTreeIter *kw_iter, gint mark);
 void meta_data_connect_mark_with_rating(gint rating, gint mark);
+void meta_data_disconnect_mark_with_rating(gint rating, gint mark);
 
 
 gchar *keyword_get_name(GtkTreeModel *keyword_tree, GtkTreeIter *iter);

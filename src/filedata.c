@@ -1603,6 +1603,24 @@ static void file_data_notify_mark_func(gpointer key, gpointer value, gpointer us
 	file_data_send_notification(fd, NOTIFY_MARKS);
 }
 
+gboolean file_data_deregister_mark_func(gint n, FileDataGetMarkFunc get_mark_func, FileDataSetMarkFunc set_mark_func, gpointer data, GDestroyNotify notify)
+{
+	if (n < 0 || n >= FILEDATA_MARKS_SIZE ||
+	    file_data_get_mark_func[n] != get_mark_func ||
+	    file_data_set_mark_func[n] != set_mark_func ||
+	    file_data_mark_func_data[n] != data ||
+	    file_data_destroy_mark_func[n] != notify) return FALSE;
+
+	if (file_data_destroy_mark_func[n]) (file_data_destroy_mark_func[n])(file_data_mark_func_data[n]);
+
+	file_data_get_mark_func[n] = NULL;
+	file_data_set_mark_func[n] = NULL;
+	file_data_mark_func_data[n] = NULL;
+	file_data_destroy_mark_func[n] = NULL;
+
+	return TRUE;
+}
+
 gboolean file_data_register_mark_func(gint n, FileDataGetMarkFunc get_mark_func, FileDataSetMarkFunc set_mark_func, gpointer data, GDestroyNotify notify)
 {
 	if (n < 0 || n >= FILEDATA_MARKS_SIZE) return FALSE;
@@ -1610,17 +1628,17 @@ gboolean file_data_register_mark_func(gint n, FileDataGetMarkFunc get_mark_func,
 	if (file_data_destroy_mark_func[n]) (file_data_destroy_mark_func[n])(file_data_mark_func_data[n]);
 
 	file_data_get_mark_func[n] = get_mark_func;
-        file_data_set_mark_func[n] = set_mark_func;
-        file_data_mark_func_data[n] = data;
-        file_data_destroy_mark_func[n] = notify;
+	file_data_set_mark_func[n] = set_mark_func;
+	file_data_mark_func_data[n] = data;
+	file_data_destroy_mark_func[n] = notify;
 
-        if (get_mark_func)
+	if (get_mark_func)
 		{
 		/* this effectively changes all known files */
 		g_hash_table_foreach(file_data_pool, file_data_notify_mark_func, NULL);
 		}
 
-        return TRUE;
+	return TRUE;
 }
 
 void file_data_get_registered_mark_func(gint n, FileDataGetMarkFunc *get_mark_func, FileDataSetMarkFunc *set_mark_func, gpointer *data)
