@@ -1567,16 +1567,24 @@ void file_data_set_mark(FileData *fd, gint n, gboolean value)
 	file_data_send_notification(fd, NOTIFY_MARKS);
 }
 
-gboolean file_data_filter_marks(FileData *fd, guint filter)
+gboolean file_data_filter_marks(FileData *fd, guint filter, gboolean inverted)
 {
 	gint i;
 	for (i = 0; i < FILEDATA_MARKS_SIZE; i++) if (filter & (1 << i)) file_data_get_mark(fd, i);
-	return ((fd->marks & filter) == filter);
+	//return ((fd->marks & filter) == filter);
+  if (inverted)
+    return filter ? !(fd->marks & filter) : TRUE;
+  else
+    return filter ? (fd->marks & filter) : TRUE;
 }
 
-GList *file_data_filter_marks_list(GList *list, guint filter)
+GList *file_data_filter_marks_list(GList *list, guint filter, gboolean inverted)
 {
 	GList *work;
+
+
+	//log_printf("DBG PABLO file_data_filter_marks_list %d\n", (int)filter);
+
 
 	work = list;
 	while (work)
@@ -1585,7 +1593,7 @@ GList *file_data_filter_marks_list(GList *list, guint filter)
 		GList *link = work;
 		work = work->next;
 
-		if (!file_data_filter_marks(fd, filter))
+		if (!file_data_filter_marks(fd, filter, inverted))
 			{
 			list = g_list_remove_link(list, link);
 			file_data_unref(fd);

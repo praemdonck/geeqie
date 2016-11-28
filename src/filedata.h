@@ -88,8 +88,8 @@ void file_data_get_registered_mark_func(gint n, FileDataGetMarkFunc *get_mark_fu
 gboolean file_data_get_mark(FileData *fd, gint n);
 guint file_data_get_marks(FileData *fd);
 void file_data_set_mark(FileData *fd, gint n, gboolean value);
-gboolean file_data_filter_marks(FileData *fd, guint filter);
-GList *file_data_filter_marks_list(GList *list, guint filter);
+gboolean file_data_filter_marks(FileData *fd, guint filter, gboolean inverted);
+GList *file_data_filter_marks_list(GList *list, guint filter, gboolean inverted);
 
 gint file_data_get_user_orientation(FileData *fd);
 void file_data_set_user_orientation(FileData *fd, gint value);

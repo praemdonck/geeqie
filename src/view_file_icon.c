@@ -1928,7 +1928,7 @@ static gboolean vficon_refresh_real(ViewFile *vf, gboolean keep_position)
 	if (vf->dir_fd)
 		{
 		ret = filelist_read(vf->dir_fd, &new_filelist, NULL);
-		new_filelist = file_data_filter_marks_list(new_filelist, vf_marks_get_filter(vf));
+		new_filelist = file_data_filter_marks_list(new_filelist, vf_marks_get_filter(vf), gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(vf->filter_invert_check)));
 		}
 
 	vf->list = iconlist_sort(vf->list, vf->sort_method, vf->sort_ascend); /* the list might not be sorted if there were renames */

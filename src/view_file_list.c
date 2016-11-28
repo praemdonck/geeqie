@@ -1589,7 +1589,7 @@ void vflist_selection_to_mark(ViewFile *vf, gint mark, SelectionToMarkMode mode)
 				break;
 			}
 
-		if (!file_data_filter_marks(fd, vf_marks_get_filter(vf))) /* file no longer matches the filter -> remove it */
+		if (!file_data_filter_marks(fd, vf_marks_get_filter(vf), gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(vf->filter_invert_check)))) /* file no longer matches the filter -> remove it */
 			{
 			vf_refresh_idle(vf);
 			}
@@ -1716,7 +1716,7 @@ gboolean vflist_refresh(ViewFile *vf)
 			file_data_unlock_list(vf->list);
 			}
 
-		vf->list = file_data_filter_marks_list(vf->list, vf_marks_get_filter(vf));
+		vf->list = file_data_filter_marks_list(vf->list, vf_marks_get_filter(vf), gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(vf->filter_invert_check)));
 		file_data_register_notify_func(vf_notify_cb, vf, NOTIFY_PRIORITY_MEDIUM);
 
 		DEBUG_1("%s vflist_refresh: sort", get_exec_time());
@@ -1848,7 +1848,7 @@ static void vflist_listview_mark_toggled_cb(GtkCellRendererToggle *cell, gchar *
 	   complete re-read of the directory - try to do only minimal update instead */
 	file_data_unregister_notify_func(vf_notify_cb, vf);
 	file_data_set_mark(fd, col_idx - FILE_COLUMN_MARKS, marked);
-	if (!file_data_filter_marks(fd, vf_marks_get_filter(vf))) /* file no longer matches the filter -> remove it */
+	if (!file_data_filter_marks(fd, vf_marks_get_filter(vf), gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(vf->filter_invert_check)))) /* file no longer matches the filter -> remove it */
 		{
 		vf_refresh_idle(vf);
 		}

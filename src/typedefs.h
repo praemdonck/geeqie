@@ -770,6 +770,7 @@ struct _ViewFile
 	GtkWidget *scrolled;
 	GtkWidget *filter;
 	GtkWidget *filter_check[FILEDATA_MARKS_SIZE];
+	GtkWidget *filter_invert_check;
 
 	FileData *dir_fd;
 	GList *list;

@@ -711,6 +711,20 @@ static GtkWidget *vf_marks_filter_init(ViewFile *vf)
 		gtk_widget_show(check);
 		vf->filter_check[i] = check;
 		}
+
+  GtkWidget *widget = gtk_label_new(" Invert");
+  gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, FALSE, 10);
+  gtk_widget_show(widget);
+
+  widget = gtk_check_button_new();
+  gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, FALSE, 0);
+  g_signal_connect(G_OBJECT(widget), "toggled",
+     G_CALLBACK(vf_marks_filter_toggle_cb), vf);
+
+  gtk_widget_show(widget);
+  vf->filter_invert_check = widget;
+
+
 	gtk_container_add(GTK_CONTAINER(frame), hbox);
 	gtk_widget_show(hbox);
 	return frame;
